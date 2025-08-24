@@ -60,10 +60,15 @@ def main():
 
     image_dir = os.path.join(os.getcwd(), 'test_data', 'test_images')
     prediction_dir = os.path.join(os.getcwd(), 'test_data', model_name + '_results' + os.sep)
-    model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
+    print("Saving to:", prediction_dir)
+   # model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
+   # Change to correct path
+    model_dir = os.path.join('u2net', 'saved_models', model_name, model_name + '.pth')
 
     img_name_list = glob.glob(image_dir + os.sep + '*')
     print(img_name_list)
+    print("Found images:", img_name_list)
+
 
     # --------- 2. dataloader ---------
     #1. dataloader
