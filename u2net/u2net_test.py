@@ -21,6 +21,11 @@ from data_loader import SalObjDataset
 from model import U2NET # full size version 173.6 MB
 from model import U2NETP # small version u2net 4.7 MB
 
+# setting absolute paths, relative to the script location
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+
+
 # normalize the predicted SOD probability map
 def normPRED(d):
     ma = torch.max(d)
@@ -49,7 +54,10 @@ def save_output(image_name,pred,d_dir):
     for i in range(1,len(bbb)):
         imidx = imidx + "." + bbb[i]
 
-    imo.save(d_dir+imidx+'.png')
+    out_path = os.path.join(d_dir, imidx + '.png')
+    print("Saving:", out_path)
+    imo.save(out_path)
+
 
 def main():
 
@@ -58,14 +66,16 @@ def main():
 
 
 
-    image_dir = os.path.join(os.getcwd(), 'test_data', 'test_images')
-    prediction_dir = os.path.join(os.getcwd(), 'test_data', model_name + '_results' + os.sep)
+    image_dir = os.path.join(PROJECT_ROOT, 'test_data', 'test_images')
+    prediction_dir = os.path.join(PROJECT_ROOT, 'test_data', 'u2net_results')
     print("Saving to:", prediction_dir)
    # model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
    # Change to correct path
-    model_dir = os.path.join('u2net', 'saved_models', model_name, model_name + '.pth')
+    model_dir = os.path.join(BASE_DIR, 'saved_models', model_name, model_name + '.pth')
 
     img_name_list = glob.glob(image_dir + os.sep + '*')
+    assert len(img_name_list) == 2, f"Expected 2 images, found {len(img_name_list)}"
+
     print(img_name_list)
     print("Found images:", img_name_list)
 
