@@ -85,12 +85,21 @@ for mask_path in mask_paths:
     print(f"Pixels per inch: {pixels_per_inch:.2f}")
     print(f"Garment area: {garment_area_in2:.1f} in² ({garment_area_ft2:.3f} ft²)")
 
+    # Convert contours to simple lists for JSON
+    def contour_to_list(contour):
+        return contour.squeeze(axis=1).tolist()
+
+    paper_coords = contour_to_list(paper)
+    garment_coords = contour_to_list(garment)
+
     # Save results keyed by filename (without extension)
     key = os.path.splitext(os.path.basename(mask_path))[0]
     results[key] = {
         "pixels_per_inch": pixels_per_inch,
         "garment_area_in2": garment_area_in2,
         "garment_area_ft2": garment_area_ft2,
+        "paper_contour": paper_coords,
+        "garment_contour": garment_coords
     }
 
     # Visualize paper and garment contours
