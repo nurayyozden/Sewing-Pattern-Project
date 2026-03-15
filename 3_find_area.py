@@ -8,6 +8,7 @@ import glob
 import math
 import json
 
+
 # Folder containing the binary masks
 mask_folder = "masked_images/masks"
 

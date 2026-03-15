@@ -1,0 +1,1 @@
+# this is where I am going to load in the images from wherever (frontend) they are uploaded from, to import them into /raw_images 

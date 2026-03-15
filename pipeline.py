@@ -149,7 +149,7 @@ def fit_and_render(pattern_id, garment_data, output_path):
     garment_poly = fp.load_garment_contour(tmp_json, key='garment')
     os.remove(tmp_json)
 
-    placed, unplaced = fp.nest_pieces(cm_pieces, garment_poly, step_cm=1.0)
+    placed, unplaced = fp.nest_pieces(cm_pieces, garment_poly)
 
     # Render overlay (non-interactive)
     fig, ax = plt.subplots(figsize=(10, 10))

@@ -24,10 +24,14 @@ import re
 import json
 import os
 import numpy as np
+import pyclipper
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 from shapely.affinity import rotate as shapely_rotate, translate
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+CLIPPER_SCALE = 1000  # pyclipper requires integer coordinates
 
 
 # ─── 0. Pattern discovery ─────────────────────────────────────────────────────
@@ -274,7 +278,7 @@ def load_garment_contour(json_path, key=None):
     return poly
 
 
-# ─── 6. Nest pattern pieces into garment contour ──────────────────────────────
+# ─── 6. NFP-based nesting ─────────────────────────────────────────────────────
 
 def normalise_to_origin(poly):
     """Translate a polygon so its bounding box starts at (0, 0)."""
@@ -282,52 +286,147 @@ def normalise_to_origin(poly):
     return translate(poly, -minx, -miny)
 
 
-def try_place(piece, garment, already_placed, step_cm=1.0, angles=(0, 90, 180, 270)):
+def _to_clipper(poly):
+    """Shapely Polygon → pyclipper integer path (loses closing duplicate point)."""
+    coords = list(poly.exterior.coords)[:-1]
+    return [
+        (int(round(x * CLIPPER_SCALE)), int(round(y * CLIPPER_SCALE)))
+        for x, y in coords
+    ]
+
+
+def _from_clipper(paths):
+    """pyclipper integer paths → Shapely Polygon / MultiPolygon, or None."""
+    polys = []
+    for path in paths:
+        if len(path) < 3:
+            continue
+        coords = [(x / CLIPPER_SCALE, y / CLIPPER_SCALE) for x, y in path]
+        try:
+            p = Polygon(coords)
+            if not p.is_valid:
+                p = p.buffer(0)
+            if p.area > 0:
+                polys.append(p)
+        except Exception:
+            pass
+    if not polys:
+        return None
+    result = unary_union(polys)
+    return None if result.is_empty else result
+
+
+def compute_ifp(container, piece):
     """
-    Try to place `piece` inside `garment` without overlapping `already_placed`.
-    Returns the placed Shapely Polygon, or None if it doesn't fit.
-    Searches left-to-right, top-to-bottom in `step_cm` increments.
+    Inner Fit Polygon: all valid positions for piece's reference point (0,0)
+    such that piece fits entirely inside container.
+
+    Computed as the intersection of (container shifted by -v) for every vertex v
+    of the piece — the exact Minkowski difference.
     """
-    gminx, gminy, gmaxx, gmaxy = garment.bounds
-
-    for angle in angles:
-        rotated = normalise_to_origin(shapely_rotate(piece, angle, origin='centroid'))
-        pw = rotated.bounds[2] - rotated.bounds[0]
-        ph = rotated.bounds[3] - rotated.bounds[1]
-
-        y = gminy
-        while y + ph <= gmaxy + step_cm:
-            x = gminx
-            while x + pw <= gmaxx + step_cm:
-                candidate = translate(rotated, x, y)
-                if garment.contains(candidate):
-                    if not any(candidate.intersects(p) for p in already_placed):
-                        return candidate
-                x += step_cm
-            y += step_cm
-
-    return None
+    valid = container
+    for x, y in list(piece.exterior.coords)[:-1]:
+        valid = valid.intersection(translate(container, -x, -y))
+        if valid.is_empty:
+            return None
+    return None if valid.is_empty else valid
 
 
-def nest_pieces(cm_pieces, garment, step_cm=1.0):
+def compute_nfp(placed_poly, new_piece):
     """
-    Greedy nesting: largest pieces first, try 0/90/180/270° rotations.
+    No-Fit Polygon: all positions of new_piece's reference point (0,0) that
+    would cause it to overlap placed_poly.
+
+    NFP(A, B) = Minkowski sum of A with the reflection of B = A ⊕ (−B).
+    Computed via pyclipper for correctness on non-convex polygons.
+    """
+    a_path = _to_clipper(placed_poly)
+    b_neg  = [(-x, -y) for x, y in _to_clipper(new_piece)]
+    try:
+        result = pyclipper.MinkowskiSum(a_path, b_neg, True)
+        return _from_clipper(result)
+    except Exception:
+        return None
+
+
+def _bottomleft(region):
+    """
+    Return the bottommost-then-leftmost vertex of a (Multi)Polygon.
+    In our coordinate system y increases downward, so 'bottom' = largest y.
+    """
+    best = None
+    geoms = list(region.geoms) if hasattr(region, 'geoms') else [region]
+    for geom in geoms:
+        if not hasattr(geom, 'exterior'):
+            continue
+        for x, y in geom.exterior.coords:
+            if best is None or y > best[1] or (abs(y - best[1]) < 1e-9 and x < best[0]):
+                best = (x, y)
+    return best
+
+
+def nest_pieces(cm_pieces, garment, rotation_step=15):
+    """
+    NFP-based nesting with gravity fill.
+
+    For each piece (largest first), tries every `rotation_step` degrees (0–360).
+    For each rotation:
+      1. Computes the Inner Fit Polygon (IFP) — valid reference-point positions
+         for the piece inside the container.
+      2. Subtracts the No-Fit Polygon (NFP) for every already-placed piece —
+         the forbidden zones that would cause overlap.
+      3. Picks the bottommost-leftmost point of the remaining valid region.
     Returns (placed, unplaced) where placed is a list of (name, Polygon).
     """
+    angles = range(0, 360, rotation_step)
     sorted_pieces = sorted(cm_pieces.items(), key=lambda x: x[1].area, reverse=True)
-    placed_polys = []
     placed = []
     unplaced = []
+    total = len(sorted_pieces)
 
-    for name, piece in sorted_pieces:
-        result = try_place(piece, garment, placed_polys, step_cm=step_cm)
-        if result is not None:
-            placed_polys.append(result)
-            placed.append((name, result))
-            print(f"  ✓ placed   {name}")
+    for idx, (name, piece) in enumerate(sorted_pieces):
+        print(f'  [{idx + 1}/{total}] {name} ...', flush=True)
+        best_poly  = None
+        best_score = float('inf')
+
+        for angle in angles:
+            rotated = normalise_to_origin(
+                shapely_rotate(piece, float(angle), origin='centroid')
+            )
+
+            # --- valid region starts as the full IFP ---
+            ifp = compute_ifp(garment, rotated)
+            if ifp is None or ifp.is_empty:
+                continue
+
+            valid = ifp
+            for _, placed_poly in placed:
+                nfp = compute_nfp(placed_poly, rotated)
+                if nfp is not None and not nfp.is_empty:
+                    valid = valid.difference(nfp)
+                if valid is None or valid.is_empty:
+                    break
+
+            if valid is None or valid.is_empty:
+                continue
+
+            pt = _bottomleft(valid)
+            if pt is None:
+                continue
+
+            dx, dy = pt
+            # maximise y (pack toward bottom), then minimise x
+            score = -dy * 1e9 + dx
+            if score < best_score:
+                best_score = score
+                best_poly  = translate(rotated, dx, dy)
+
+        if best_poly is not None:
+            placed.append((name, best_poly))
+            print(f'      ✓ placed', flush=True)
         else:
             unplaced.append(name)
-            print(f"  ✗ no fit   {name}")
+            print(f'      ✗ no fit', flush=True)
 
     return placed, unplaced
 
@@ -426,7 +525,7 @@ def run(pattern_id, garment_json, patterns_dir, output_path='pattern_overlay.png
 
     # 6. Nest pieces
     print('\n--- 6. Nesting pattern pieces ---')
-    placed, unplaced = nest_pieces(cm_pieces, garment, step_cm=1.0)
+    placed, unplaced = nest_pieces(cm_pieces, garment)
     print(f'\nResult: {len(placed)}/{len(cm_pieces)} pieces placed')
     if unplaced:
         print(f'Unplaced: {unplaced}')
