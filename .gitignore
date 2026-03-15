@@ -2,6 +2,13 @@
 
 /u2net/model/*.pth
 /u2net/saved_model/u2net/*.pth
-
-
 u2net/saved_models/u2net/u2net.pth
+
+# Pattern data (too large for git)
+/patterns/
+
+# Runtime session files
+/static/sessions/
+
+# Generated overlays
+pattern_overlay*.png

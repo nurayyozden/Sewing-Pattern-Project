@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Result — Pattern Fitter{% endblock %}
+
+{% block steps %}
+<nav class="steps">
+  <span class="step done">1. Upload</span>
+  <span class="step-divider">›</span>
+  <span class="step done">2. Choose Pattern</span>
+  <span class="step-divider">›</span>
+  <span class="step active">3. Result</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="card result-card">
+  <h1>Pattern fitting result</h1>
+  <p class="pattern-id-label">{{ result.pattern_id }}</p>
+
+  <div class="result-stats">
+    <div class="stat">
+      <span class="stat-value">{{ result.garment_area_cm2 }}</span>
+      <span class="stat-label">Garment area (cm²)</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ result.placed_area_cm2 }}</span>
+      <span class="stat-label">Pattern area placed (cm²)</span>
+    </div>
+    <div class="stat {% if result.waste_cm2 > result.garment_area_cm2 * 0.5 %}stat-warn{% endif %}">
+      <span class="stat-value">{{ result.waste_cm2 }}</span>
+      <span class="stat-label">Unused fabric (cm²)</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ result.placed | length }} / {{ (result.placed + result.unplaced) | length }}</span>
+      <span class="stat-label">Pieces fitted</span>
+    </div>
+  </div>
+
+  {% if result.unplaced %}
+  <div class="unplaced-banner">
+    <strong>Did not fit:</strong> {{ result.unplaced | join(', ') }}
+    <br><small>The garment fabric is too small to hold these pieces.</small>
+  </div>
+  {% endif %}
+
+  <img src="{{ overlay_url }}" alt="Pattern overlay" class="overlay-img" />
+
+  <div class="result-actions">
+    <a href="{{ overlay_url }}" download class="btn btn-secondary">Download Image</a>
+    <a href="{{ url_for('select_pattern', sid=sid) }}" class="btn btn-primary">Try Another Pattern</a>
+    <a href="{{ url_for('index') }}" class="btn btn-outline">Upload New Garment</a>
+  </div>
+
+  <!-- Quick re-pick from result page -->
+  <details class="quick-pick">
+    <summary>Try a different pattern type</summary>
+    <form method="POST" action="{{ url_for('fit_pattern', sid=sid) }}" id="quick-form">
+      <input type="hidden" name="pattern_id" id="quick-pattern-id" value="" />
+      <div class="category-grid category-grid-sm">
+        {% for cat in categories %}
+        <button type="button" class="category-card-sm" data-category="{{ cat.id }}" data-first-id="{{ cat.first_id }}">
+          {{ cat.display }}
+        </button>
+        {% endfor %}
+      </div>
+      <div class="loading hidden" id="quick-loading">
+        <div class="spinner"></div>
+        <p>Fitting…</p>
+      </div>
+    </form>
+  </details>
+</section>
+
+<script>
+  const quickCards = document.querySelectorAll('.category-card-sm');
+  const quickInput = document.getElementById('quick-pattern-id');
+  const quickForm = document.getElementById('quick-form');
+  const quickLoading = document.getElementById('quick-loading');
+
+  quickCards.forEach(card => {
+    card.addEventListener('click', async () => {
+      quickCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      quickInput.value = card.dataset.firstId;
+      quickLoading.classList.remove('hidden');
+      quickForm.submit();
+    });
+  });
+</script>
+{% endblock %}

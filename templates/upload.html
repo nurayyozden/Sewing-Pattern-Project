@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Garment — Pattern Fitter{% endblock %}
+
+{% block steps %}
+<nav class="steps">
+  <span class="step active">1. Upload</span>
+  <span class="step-divider">›</span>
+  <span class="step">2. Choose Pattern</span>
+  <span class="step-divider">›</span>
+  <span class="step">3. Result</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="card upload-card">
+  <h1>Upload your garment</h1>
+  <p class="subtitle">
+    Follow these steps before taking your photo:
+  </p>
+
+  {% if error %}
+  <div class="error-banner">{{ error }}</div>
+  {% endif %}
+
+  <ol class="instructions">
+    <li>
+      <strong>Cut the garment flat.</strong>
+      Cut along the seams so the fabric opens into one continuous flat piece —
+      not folded or layered. For a dress or shirt, cut up the side seams and
+      along the shoulders so it lays fully flat.
+    </li>
+    <li>
+      <strong>Place a reference sheet next to it.</strong>
+      Put a US Letter sheet of paper (8.5 × 11 in) flat on the left side of
+      the fabric.
+    </li>
+    <li>
+      <strong>Photograph from directly above.</strong>
+      Make sure both the paper and the full garment are visible in the frame.
+    </li>
+  </ol>
+
+  <div class="hint-diagram">
+    <div class="hint-box paper-hint">📄<br/>US Letter<br/>paper</div>
+    <div class="hint-box garment-hint">✂ Flat, cut-open<br/>garment</div>
+  </div>
+
+  <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="upload-form">
+    <label class="drop-zone" id="drop-zone">
+      <input type="file" name="image" id="file-input" accept=".jpg,.jpeg,.png" required />
+      <div class="drop-zone-inner" id="drop-zone-inner">
+        <span class="drop-icon">⬆</span>
+        <span class="drop-label">Click to choose or drag & drop</span>
+        <span class="drop-sub">JPG or PNG</span>
+      </div>
+    </label>
+
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      Process Image
+    </button>
+  </form>
+
+  <div class="loading hidden" id="loading">
+    <div class="spinner"></div>
+    <p>Removing background and measuring garment…<br>This takes about 30 seconds.</p>
+  </div>
+</section>
+
+<script>
+  const input = document.getElementById('file-input');
+  const inner = document.getElementById('drop-zone-inner');
+  const form  = document.getElementById('upload-form');
+  const loading = document.getElementById('loading');
+  const submitBtn = document.getElementById('submit-btn');
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) {
+      inner.querySelector('.drop-label').textContent = input.files[0].name;
+    }
+  });
+
+  form.addEventListener('submit', () => {
+    loading.classList.remove('hidden');
+    submitBtn.classList.add('hidden');
+  });
+
+  // Drag and drop
+  const zone = document.getElementById('drop-zone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      inner.querySelector('.drop-label').textContent = file.name;
+    }
+  });
+</script>
+{% endblock %}

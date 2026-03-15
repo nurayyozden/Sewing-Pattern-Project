@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Choose Pattern — Pattern Fitter{% endblock %}
+
+{% block steps %}
+<nav class="steps">
+  <span class="step done">1. Upload</span>
+  <span class="step-divider">›</span>
+  <span class="step active">2. Choose Pattern</span>
+  <span class="step-divider">›</span>
+  <span class="step">3. Result</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<section class="two-col">
+
+  <!-- Left: garment preview -->
+  <div class="garment-preview">
+    <h2>Your garment</h2>
+    <img src="{{ garment_img_url }}" alt="Your garment" class="garment-img" />
+    <p class="garment-stat">Area: {{ garment_area_in2 }} in²</p>
+  </div>
+
+  <!-- Right: pattern picker -->
+  <div class="pattern-picker">
+    <h2>Choose a sewing pattern</h2>
+    <p class="subtitle">Select a garment type to fit the pattern pieces into your fabric.</p>
+
+    <form method="POST" action="{{ url_for('fit_pattern', sid=sid) }}" id="select-form">
+      <input type="hidden" name="pattern_id" id="pattern-id-input" value="" />
+
+      <!-- Step 1: pick a category -->
+      <p class="picker-label">What type of pattern?</p>
+      <div class="category-grid">
+        {% for cat in categories %}
+        <button
+          type="button"
+          class="category-card"
+          data-category="{{ cat.id }}"
+        >
+          <span class="cat-name">{{ cat.display }}</span>
+          <span class="cat-count">{{ cat.count }} options</span>
+        </button>
+        {% endfor %}
+      </div>
+
+      <!-- Step 2: pick a specific pattern from image grid -->
+      <div class="pattern-image-picker hidden" id="pattern-image-picker">
+        <p class="picker-label">Choose a design:</p>
+        <div class="pattern-image-grid" id="pattern-image-grid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-fit hidden" id="fit-btn">
+        Fit This Pattern →
+      </button>
+    </form>
+
+    <div class="loading hidden" id="loading">
+      <div class="spinner"></div>
+      <p>Fitting pattern pieces…<br>This may take a minute.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const cards = document.querySelectorAll('.category-card');
+  const patternIdInput = document.getElementById('pattern-id-input');
+  const imagePicker = document.getElementById('pattern-image-picker');
+  const imageGrid = document.getElementById('pattern-image-grid');
+  const fitBtn = document.getElementById('fit-btn');
+  const form = document.getElementById('select-form');
+  const loading = document.getElementById('loading');
+
+  cards.forEach(card => {
+    card.addEventListener('click', async () => {
+      cards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+
+      fitBtn.classList.add('hidden');
+      patternIdInput.value = '';
+      imageGrid.innerHTML = '<p class="loading-text">Loading…</p>';
+      imagePicker.classList.remove('hidden');
+
+      const resp = await fetch(`/api/patterns/${card.dataset.category}`);
+      const ids = await resp.json();
+
+      imageGrid.innerHTML = ids.map(id => `
+        <button type="button" class="pattern-thumb" data-id="${id}">
+          <img src="/pattern-preview/${id}" alt="${id}" loading="lazy" />
+        </button>
+      `).join('');
+
+      // Wire up thumb clicks
+      imageGrid.querySelectorAll('.pattern-thumb').forEach(thumb => {
+        thumb.addEventListener('click', () => {
+          imageGrid.querySelectorAll('.pattern-thumb').forEach(t => t.classList.remove('selected'));
+          thumb.classList.add('selected');
+          patternIdInput.value = thumb.dataset.id;
+          fitBtn.classList.remove('hidden');
+        });
+      });
+    });
+  });
+
+  form.addEventListener('submit', () => {
+    if (!patternIdInput.value) return;
+    fitBtn.classList.add('hidden');
+    loading.classList.remove('hidden');
+  });
+</script>
+{% endblock %}
