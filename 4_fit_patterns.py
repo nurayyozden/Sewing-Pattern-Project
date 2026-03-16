@@ -25,8 +25,8 @@ import json
 import os
 import numpy as np
 import pyclipper
-from shapely.geometry import Polygon
-from shapely.ops import unary_union
+from shapely.geometry import Polygon, Point
+from shapely.ops import unary_union, nearest_points
 from shapely.affinity import rotate as shapely_rotate, translate
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -349,20 +349,18 @@ def compute_nfp(placed_poly, new_piece):
         return None
 
 
-def _bottomleft(region):
+def _nearest_to_corner(valid_region, garment):
     """
-    Return the bottommost-then-leftmost vertex of a (Multi)Polygon.
-    In our coordinate system y increases downward, so 'bottom' = largest y.
+    Return the point in valid_region nearest to the bottom-left corner of
+    the garment — the tightest valid placement against that corner.
+
+    'Bottom' = largest y in our image coordinate system (y increases downward).
+    If the corner itself is inside the valid region the piece can go right there;
+    otherwise Shapely finds the closest valid position on the boundary.
     """
-    best = None
-    geoms = list(region.geoms) if hasattr(region, 'geoms') else [region]
-    for geom in geoms:
-        if not hasattr(geom, 'exterior'):
-            continue
-        for x, y in geom.exterior.coords:
-            if best is None or y > best[1] or (abs(y - best[1]) < 1e-9 and x < best[0]):
-                best = (x, y)
-    return best
+    corner = Point(garment.bounds[0], garment.bounds[3])   # (min_x, max_y)
+    pt = nearest_points(corner, valid_region)[1]
+    return pt.x, pt.y
 
 
 def nest_pieces(cm_pieces, garment, rotation_step=15):
@@ -410,13 +408,9 @@ def nest_pieces(cm_pieces, garment, rotation_step=15):
             if valid is None or valid.is_empty:
                 continue
 
-            pt = _bottomleft(valid)
-            if pt is None:
-                continue
-
-            dx, dy = pt
-            # maximise y (pack toward bottom), then minimise x
-            score = -dy * 1e9 + dx
+            dx, dy = _nearest_to_corner(valid, garment)
+            # Score: distance from bottom-left corner — lower is better
+            score = (dx - garment.bounds[0])**2 + (dy - garment.bounds[3])**2
             if score < best_score:
                 best_score = score
                 best_poly  = translate(rotated, dx, dy)
