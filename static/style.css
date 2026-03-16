@@ -1,11 +1,11 @@
 /* ── Variables ───────────────────────────────────────────────────────────── */
 :root {
-  --cream:       #f2ede4;
-  --cream-dark:  #e4ddd2;
-  --pink:        #e8457a;
-  --pink-light:  #fce8f0;
-  --olive:       #7a8c3a;
-  --olive-light: #eef0e6;
+  --cream:       #ffffff;
+  --cream-dark:  #e4e4e4;
+  --pink:        #3a7a4a;
+  --pink-light:  #e6f2e9;
+  --olive:       #5c8a6a;
+  --olive-light: #edf4ef;
   --black:       #111111;
   --gray:        #888;
   --white:       #ffffff;
@@ -107,7 +107,7 @@ h2 {
 .error-banner {
   background: var(--pink-light);
   border: 1.5px solid var(--pink);
-  color: #b0004e;
+  color: #2a5c38;
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
   font-size: 0.88rem;
@@ -204,7 +204,7 @@ h2 {
   width: 100%;
   text-align: center;
 }
-.btn-primary:hover { background: #c73368; border-color: #c73368; }
+.btn-primary:hover { background: #2a5c38; border-color: #2a5c38; }
 .btn-secondary { background: var(--white); color: var(--black); }
 .btn-secondary:hover { background: var(--cream); }
 .btn-outline { background: transparent; color: var(--black); }
@@ -359,7 +359,7 @@ h2 {
   color: var(--gray);
   margin-top: 0.15rem;
 }
-.stat-warn .stat-value { color: #c73368; }
+.stat-warn .stat-value { color: #2a5c38; }
 
 .unplaced-banner {
   background: var(--olive-light);
