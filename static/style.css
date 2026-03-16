@@ -70,6 +70,14 @@ h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.75rem; }
 /* ── Upload page ─────────────────────────────────────────────────────────── */
 .upload-card { max-width: 540px; margin: 0 auto; }
 
+.byline {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 1rem;
+}
+.byline a { color: #666; text-decoration: underline; }
+.byline a:hover { color: #1a1a1a; }
+
 .instructions {
   margin-bottom: 1.5rem;
   padding-left: 1.25rem;
