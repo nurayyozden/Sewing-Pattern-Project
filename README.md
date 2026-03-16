@@ -2,8 +2,6 @@
 
 A web app that helps you reuse unworn clothing fabric by fitting sewing pattern pieces onto your garment as efficiently as possible — minimising waste.
 
-> Note: Claude Code assisted in writing the code for this project.
-
 ---
 
 ## What this project does
@@ -138,7 +136,7 @@ python app.py
 
 ---
 
-## Dataset citation
+## Citation
 
 The sewing pattern library uses data from:
 
@@ -147,3 +145,5 @@ The sewing pattern library uses data from:
 Project lead: Olga Sorkine-Hornung (IGL, ETH Zurich).
 License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
 Project page: https://igl.ethz.ch/projects/GarmentCodeData/
+
+> Note: Claude Code assisted in writing the code for this project.

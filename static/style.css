@@ -1,12 +1,17 @@
 /* ── Variables ───────────────────────────────────────────────────────────── */
 :root {
-  --cream:      #f2ede4;
-  --cream-dark: #e8e1d5;
-  --pink:       #e8457a;
-  --pink-light: #fce8f0;
-  --black:      #111111;
-  --gray:       #888;
-  --white:      #ffffff;
+  --cream:       #f2ede4;
+  --cream-dark:  #e4ddd2;
+  --pink:        #e8457a;
+  --pink-light:  #fce8f0;
+  --olive:       #7a8c3a;
+  --olive-light: #eef0e6;
+  --black:       #111111;
+  --gray:        #888;
+  --white:       #ffffff;
+
+  /* swap 'Caveat' for 'Belmonte Ballpoint' here if you own the font */
+  --hand: 'Caveat', cursive;
 }
 
 /* ── Reset & base ────────────────────────────────────────────────────────── */
@@ -37,7 +42,6 @@ header {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-
 .logo span { color: var(--pink); }
 
 /* ── Step indicator ──────────────────────────────────────────────────────── */
@@ -46,17 +50,13 @@ header {
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 0 0.25rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--cream-dark);
+  font-family: var(--hand);
+  font-size: 1rem;
+  color: var(--gray);
 }
-
-.step { color: var(--gray); }
-.step.active { color: var(--black); }
-.step.done { color: var(--pink); }
-.step-divider { color: var(--cream-dark); }
+.step.active { color: var(--black); font-weight: 600; }
+.step.done   { color: var(--olive); }
+.step-divider { color: var(--cream-dark); font-family: 'DM Sans', sans-serif; }
 
 /* ── Main layout ─────────────────────────────────────────────────────────── */
 main { max-width: 1020px; margin: 0 auto; padding: 0 2rem 4rem; }
@@ -68,13 +68,13 @@ h1 {
   font-size: 2.4rem;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 h2 {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   margin-bottom: 0.75rem;
 }
 
@@ -89,19 +89,18 @@ h2 {
 .card {
   background: var(--white);
   border: 2px solid var(--black);
-  border-radius: 0;
   padding: 2.5rem;
   margin-top: 1.5rem;
 }
 
 /* ── Byline ──────────────────────────────────────────────────────────────── */
 .byline {
-  font-size: 0.78rem;
+  font-family: var(--hand);
+  font-size: 1rem;
   color: var(--gray);
   margin-bottom: 1.25rem;
-  letter-spacing: 0.01em;
 }
-.byline a { color: var(--pink); text-decoration: none; font-weight: 600; }
+.byline a { color: var(--pink); text-decoration: none; }
 .byline a:hover { text-decoration: underline; }
 
 /* ── Error banner ────────────────────────────────────────────────────────── */
@@ -117,6 +116,18 @@ h2 {
 /* ── Upload page ─────────────────────────────────────────────────────────── */
 .upload-card { max-width: 560px; margin: 0 auto; }
 
+/* decorative dots — like Clairo album art */
+.upload-card::before {
+  content: '· · ·';
+  display: block;
+  font-size: 1.4rem;
+  letter-spacing: 0.6rem;
+  color: var(--olive);
+  opacity: 0.4;
+  text-align: right;
+  margin-bottom: 0.5rem;
+}
+
 .instructions {
   margin-bottom: 1.75rem;
   padding-left: 1.25rem;
@@ -127,6 +138,13 @@ h2 {
 .instructions li { font-size: 0.9rem; line-height: 1.6; color: #333; }
 .instructions strong { color: var(--black); }
 
+/* handwritten annotation style for instruction numbers */
+.instructions li::marker {
+  font-family: var(--hand);
+  font-size: 1.1rem;
+  color: var(--olive);
+}
+
 .hint-diagram {
   display: flex;
   gap: 0.75rem;
@@ -134,24 +152,26 @@ h2 {
 }
 .hint-box {
   flex: 1;
-  border: 2px dashed var(--cream-dark);
+  border: 1.5px dashed var(--cream-dark);
   padding: 1rem;
   text-align: center;
-  font-size: 0.8rem;
+  font-family: var(--hand);
+  font-size: 0.95rem;
   color: var(--gray);
-  line-height: 1.5;
+  line-height: 1.6;
+  background: var(--cream);
 }
 .paper-hint { flex: 0.6; }
 
 .drop-zone {
   display: block;
-  border: 2px dashed var(--black);
+  border: 2px dashed var(--olive);
   padding: 2.5rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
   margin-bottom: 1rem;
-  background: var(--cream);
+  background: var(--olive-light);
 }
 .drop-zone:hover, .drop-zone.drag-over {
   border-color: var(--pink);
@@ -160,8 +180,8 @@ h2 {
 .drop-zone input[type="file"] { display: none; }
 .drop-zone-inner { display: flex; flex-direction: column; gap: 0.35rem; }
 .drop-icon { font-size: 1.75rem; }
-.drop-label { font-weight: 600; font-size: 0.95rem; }
-.drop-sub { font-size: 0.78rem; color: var(--gray); letter-spacing: 0.04em; text-transform: uppercase; }
+.drop-label { font-family: var(--hand); font-size: 1.2rem; font-weight: 600; }
+.drop-sub { font-size: 0.75rem; color: var(--gray); letter-spacing: 0.05em; text-transform: uppercase; }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
@@ -169,13 +189,13 @@ h2 {
   padding: 0.75rem 1.75rem;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
+  font-size: 0.82rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
   text-decoration: none;
   border: 2px solid var(--black);
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 .btn-primary {
   background: var(--pink);
@@ -196,14 +216,15 @@ h2 {
   text-align: center;
   padding: 2rem 0;
   color: var(--gray);
-  font-size: 0.88rem;
+  font-family: var(--hand);
+  font-size: 1.1rem;
   line-height: 1.7;
 }
 .loading.hidden { display: none; }
 .spinner {
   width: 28px; height: 28px;
   border: 3px solid var(--cream-dark);
-  border-top-color: var(--pink);
+  border-top-color: var(--olive);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
   margin: 0 auto 0.75rem;
@@ -233,10 +254,9 @@ h2 {
   margin-bottom: 0.6rem;
 }
 .garment-stat {
-  font-size: 0.78rem;
+  font-family: var(--hand);
+  font-size: 1rem;
   color: var(--gray);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .pattern-picker {
@@ -246,12 +266,9 @@ h2 {
 }
 
 .picker-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--gray);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: var(--hand);
+  font-size: 1.05rem;
+  color: var(--olive);
   margin-bottom: 0.75rem;
 }
 
@@ -267,20 +284,19 @@ h2 {
   background: var(--white);
   cursor: pointer;
   text-align: left;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
-.category-card:hover { background: var(--black); color: var(--white); }
+.category-card:hover { background: var(--olive); border-color: var(--olive); color: var(--white); }
 .category-card.selected { background: var(--pink); border-color: var(--pink); color: var(--white); }
 .cat-name {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
   font-size: 0.82rem;
-  letter-spacing: 0.01em;
 }
-.cat-count { font-size: 0.72rem; opacity: 0.7; }
+.cat-count { font-family: var(--hand); font-size: 0.9rem; opacity: 0.75; }
 
 .pattern-image-picker { margin-top: 1.25rem; }
 .pattern-image-picker.hidden { display: none; }
@@ -306,11 +322,11 @@ h2 {
   align-items: center;
   justify-content: center;
 }
-.pattern-thumb:hover { border-color: var(--black); }
+.pattern-thumb:hover { border-color: var(--olive); }
 .pattern-thumb.selected { border-color: var(--pink); border-width: 2.5px; }
 .pattern-thumb img { width: 100%; height: 100%; object-fit: contain; }
 
-.loading-text { font-size: 0.85rem; color: var(--gray); padding: 0.5rem; }
+.loading-text { font-family: var(--hand); font-size: 1rem; color: var(--gray); padding: 0.5rem; }
 
 .btn-fit { margin-top: 1rem; }
 
@@ -338,21 +354,22 @@ h2 {
 }
 .stat-label {
   display: block;
-  font-size: 0.7rem;
+  font-family: var(--hand);
+  font-size: 0.9rem;
   color: var(--gray);
-  margin-top: 0.25rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin-top: 0.15rem;
 }
 .stat-warn .stat-value { color: #c73368; }
 
 .unplaced-banner {
-  background: var(--pink-light);
-  border: 1.5px solid var(--pink);
+  background: var(--olive-light);
+  border: 1.5px solid var(--olive);
   padding: 0.75rem 1rem;
   margin-bottom: 1.25rem;
-  font-size: 0.88rem;
+  font-family: var(--hand);
+  font-size: 1rem;
   line-height: 1.5;
+  color: #4a5c1a;
 }
 
 .overlay-img {
@@ -373,10 +390,8 @@ h2 {
 .quick-pick { border-top: 2px solid var(--cream-dark); padding-top: 1.5rem; }
 .quick-pick summary {
   cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--hand);
+  font-size: 1.05rem;
   color: var(--gray);
   margin-bottom: 1rem;
 }
@@ -389,9 +404,9 @@ h2 {
   font-family: 'Syne', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
-.category-card-sm:hover { background: var(--black); color: var(--white); }
+.category-card-sm:hover { background: var(--olive); border-color: var(--olive); color: var(--white); }
 .category-card-sm.selected { background: var(--pink); border-color: var(--pink); color: var(--white); }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
