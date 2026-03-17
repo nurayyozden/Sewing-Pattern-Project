@@ -1,3 +1,13 @@
+/* ── Self-hosted fonts ───────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Gaya';
+  src: url('/static/fonts/Gaya-Regular.woff2') format('woff2'),
+       url('/static/fonts/Gaya-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Variables ───────────────────────────────────────────────────────────── */
 :root {
   --cream:       #f0ebe0;
@@ -12,8 +22,7 @@
   --gray:        #9a9890;
   --white:       #faf7f0;
 
-  /* swap 'Caveat' for 'Belmonte Ballpoint' here if you own the font */
-  --hand: 'Caveat', cursive;
+  --hand: 'Gaya', 'Playfair Display', serif;
 }
 
 /* ── Reset & base ────────────────────────────────────────────────────────── */
