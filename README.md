@@ -145,5 +145,3 @@ The sewing pattern library uses data from:
 Project lead: Olga Sorkine-Hornung (IGL, ETH Zurich).
 License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
 Project page: https://igl.ethz.ch/projects/GarmentCodeData/
-
-> Note: Claude Code assisted in writing the code for this project.
